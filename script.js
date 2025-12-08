@@ -1,485 +1,144 @@
-// ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ВИДЕО ==========
-let videoPlayer = null;
-let isVideoLoaded = false;
-let isFullscreen = false;
-
-// Rutube видео
-const RUTUBE_VIDEO_ID = 'a099adc6184f687abceb40b1c783c844';
-const RUTUBE_VIDEO_URL = `https://rutube.ru/play/embed/${RUTUBE_VIDEO_ID}/`;
-
-// ========== ИНИЦИАЛИЗАЦИЯ САЙТА ==========
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Сайт учебного проекта загружен!');
-    console.log('Создатель: Новосельцев Алексей, ученик 8А класса');
+// Нейронная сеть на фоне
+function createNeuralNetwork() {
+    const container = document.getElementById('neuralNetwork');
+    const neurons = 100;
+    const connections = 200;
     
-    initMobileMenu();
-    initSmoothScroll();
-    initFAQ();
-    initCounters();
-    initScrollAnimations();
-    setupScrollProgress();
-    setupEventListeners();
+    // Создаем нейроны
+    for (let i = 0; i < neurons; i++) {
+        const neuron = document.createElement('div');
+        neuron.className = 'neuron';
+        neuron.style.left = `${Math.random() * 100}%`;
+        neuron.style.top = `${Math.random() * 100}%`;
+        neuron.style.animationDelay = `${Math.random() * 20}s`;
+        container.appendChild(neuron);
+    }
     
-    // Показываем приветственное уведомление
-    setTimeout(() => {
-        showNotification('Добро пожаловать на сайт учебного проекта! 👨‍🎓', 'success');
-    }, 1500);
-});
-
-// ========== МОБИЛЬНОЕ МЕНЮ ==========
-function initMobileMenu() {
-    const menuBtn = document.querySelector('.mobile-menu-btn');
-    const navMenu = document.querySelector('.nav-menu');
-    
-    if (!menuBtn || !navMenu) return;
-    
-    menuBtn.addEventListener('click', function() {
-        navMenu.classList.toggle('active');
-        menuBtn.innerHTML = navMenu.classList.contains('active') 
-            ? '<i class="fas fa-times"></i>' 
-            : '<i class="fas fa-bars"></i>';
-    });
-    
-    // Закрытие меню при клике на ссылку
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-            navMenu.classList.remove('active');
-            menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-        });
-    });
-    
-    // Закрытие меню при клике вне его
-    document.addEventListener('click', function(event) {
-        if (!navMenu.contains(event.target) && !menuBtn.contains(event.target) && navMenu.classList.contains('active')) {
-            navMenu.classList.remove('active');
-            menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-        }
-    });
+    // Создаем соединения
+    for (let i = 0; i < connections; i++) {
+        const connection = document.createElement('div');
+        connection.className = 'connection';
+        
+        const x1 = Math.random() * 100;
+        const y1 = Math.random() * 100;
+        const x2 = x1 + (Math.random() - 0.5) * 40;
+        const y2 = y1 + (Math.random() - 0.5) * 40;
+        
+        const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+        
+        connection.style.width = `${length}%`;
+        connection.style.left = `${x1}%`;
+        connection.style.top = `${y1}%`;
+        connection.style.transform = `rotate(${angle}deg)`;
+        connection.style.animationDelay = `${Math.random() * 3}s`;
+        
+        container.appendChild(connection);
+    }
 }
 
-// ========== ПЛАВНАЯ ПРОКРУТКА ==========
-function initSmoothScroll() {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            if (href === '#' || !href.startsWith('#')) return;
-            
+// Мобильное меню
+document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+    document.getElementById('navMenu').classList.toggle('active');
+});
+
+// Закрытие меню при клике на ссылку
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+        document.getElementById('navMenu').classList.remove('active');
+    });
+});
+
+// Плавная прокрутка
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (href.startsWith('#') && href.length > 1) {
             e.preventDefault();
-            
-            const targetId = href.substring(1);
-            const target = document.getElementById(targetId);
-            
+            const target = document.querySelector(href);
             if (target) {
-                const header = document.querySelector('header');
-                const headerHeight = header ? header.offsetHeight : 80;
+                const headerHeight = document.querySelector('header').offsetHeight;
+                const targetPosition = target.getBoundingClientRect().top + 
+                                     window.pageYOffset - headerHeight;
                 
                 window.scrollTo({
-                    top: target.offsetTop - headerHeight,
+                    top: targetPosition,
                     behavior: 'smooth'
                 });
                 
-                // Обновляем активную ссылку в навигации
+                // Обновление активной ссылки
                 document.querySelectorAll('.nav-link').forEach(link => {
                     link.classList.remove('active');
-                    if (link.getAttribute('href') === href) {
-                        link.classList.add('active');
-                    }
                 });
+                this.classList.add('active');
+            }
+        }
+    });
+});
+
+// FAQ аккордеон
+document.querySelectorAll('.faq-question').forEach(question => {
+    question.addEventListener('click', function() {
+        const item = this.parentElement;
+        const isOpen = item.classList.contains('active');
+        
+        // Закрытие других FAQ
+        document.querySelectorAll('.faq-item.active').forEach(openItem => {
+            if (openItem !== item) {
+                openItem.classList.remove('active');
             }
         });
+        
+        // Переключение текущего FAQ
+        item.classList.toggle('active', !isOpen);
     });
-}
+});
 
-// ========== FAQ СИСТЕМА ==========
-function initFAQ() {
-    const faqQuestions = document.querySelectorAll('.faq-question');
-    
-    faqQuestions.forEach(question => {
-        question.addEventListener('click', function() {
-            const faqItem = this.parentElement;
-            const isActive = faqItem.classList.contains('active');
-            const icon = this.querySelector('.faq-icon');
-            
-            // Закрываем все другие открытые FAQ
-            document.querySelectorAll('.faq-item.active').forEach(otherItem => {
-                if (otherItem !== faqItem) {
-                    otherItem.classList.remove('active');
-                }
-            });
-            
-            // Переключаем текущий FAQ
-            if (!isActive) {
-                faqItem.classList.add('active');
-                if (icon) icon.innerHTML = '<i class="fas fa-minus"></i>';
-            } else {
-                faqItem.classList.remove('active');
-                if (icon) icon.innerHTML = '<i class="fas fa-plus"></i>';
-            }
-        });
-    });
-}
-
-// ========== АНИМАЦИЯ СЧЕТЧИКОВ ==========
-function initCounters() {
-    const counters = document.querySelectorAll('.stat-number');
-    
-    counters.forEach(counter => {
-        const originalText = counter.textContent;
-        const target = parseInt(originalText);
-        
-        if (isNaN(target)) return;
-        
-        // Сбрасываем счетчик
-        counter.textContent = '0';
-        
-        // Создаем наблюдатель для анимации при появлении
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    startCounterAnimation(counter, target, originalText);
-                    observer.unobserve(counter);
-                }
-            });
-        }, { threshold: 0.5 });
-        
-        observer.observe(counter);
-    });
-}
-
-function startCounterAnimation(element, target, originalText) {
-    let current = 0;
-    const increment = target / 60; // 60 кадров анимации
-    const duration = 2000; // 2 секунды
-    const stepTime = Math.floor(duration / 60);
-    
-    const timer = setInterval(() => {
-        current += increment;
-        
-        if (current >= target) {
-            element.textContent = originalText;
-            clearInterval(timer);
-            
-            // Добавляем небольшую анимацию завершения
-            element.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                element.style.transform = 'scale(1)';
-            }, 200);
-        } else {
-            element.textContent = Math.floor(current);
-        }
-    }, stepTime);
-}
-
-// ========== АНИМАЦИИ ПРИ СКРОЛЛЕ ==========
-function initScrollAnimations() {
-    const animatedElements = document.querySelectorAll(
-        '.feature-card, .install-step, .timeline-item, .resource-card, .tip, .extension'
-    );
-    
-    // Изначально скрываем элементы
-    animatedElements.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    });
-    
-    // Создаем наблюдатель
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                // Задержка для последовательного появления
-                const delay = entry.target.dataset.delay || 0;
-                setTimeout(() => {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }, delay);
-            }
-        });
-    }, { 
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    });
-    
-    // Назначаем задержку для последовательной анимации
-    animatedElements.forEach((el, index) => {
-        el.dataset.delay = (index % 6) * 100; // Задержка 100мс между группами
-        observer.observe(el);
-    });
-}
-
-// ========== ВИДЕО ФУНКЦИОНАЛ ==========
-function loadVideo() {
-    const videoContainer = document.getElementById('videoPlayer');
-    if (!videoContainer) return;
-    
-    // Показываем индикатор загрузки
-    videoContainer.innerHTML = `
-        <div class="video-loading">
-            <div class="loading-spinner"></div>
-            <p>Загрузка видео с Rutube...</p>
-        </div>
-    `;
-    
-    // Добавляем стили для спиннера
-    const style = document.createElement('style');
-    style.textContent = `
-        .video-loading {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            z-index: 10;
-        }
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #2d5be3;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // Загружаем видео через iframe
-    setTimeout(() => {
-        videoContainer.innerHTML = `
-            <iframe 
-                src="${RUTUBE_VIDEO_URL}" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen
-                title="Создание сайта за 15 минут - учебный проект"
-                id="mainVideoIframe">
-            </iframe>
-        `;
-        
-        videoPlayer = document.getElementById('mainVideoIframe');
-        isVideoLoaded = true;
-        
-        // Обновляем кнопки
-        updateVideoControls();
-        
-        showNotification('Видео успешно загружено! Нажмите "Воспроизвести"', 'success');
-    }, 1500);
-}
-
-function playVideo() {
-    if (!isVideoLoaded) {
-        loadVideo();
-        return;
-    }
-    
-    if (videoPlayer) {
-        try {
-            // Для Rutube может потребоваться другой подход
-            // Пытаемся отправить команду воспроизведения
-            videoPlayer.contentWindow.postMessage('play', '*');
-            
-            // Обновляем UI
-            document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i> Пауза';
-            document.getElementById('playBtn').setAttribute('onclick', 'pauseVideo()');
-            
-            showNotification('Воспроизведение видео...', 'info');
-        } catch (error) {
-            console.log('Не удалось воспроизвести видео:', error);
-            showNotification('Нажмите на видео для воспроизведения', 'warning');
-        }
-    }
-}
-
-function pauseVideo() {
-    if (videoPlayer && isVideoLoaded) {
-        try {
-            videoPlayer.contentWindow.postMessage('pause', '*');
-            
-            // Обновляем UI
-            document.getElementById('playBtn').innerHTML = '<i class="fas fa-play"></i> Воспроизвести';
-            document.getElementById('playBtn').setAttribute('onclick', 'playVideo()');
-        } catch (error) {
-            console.log('Не удалось поставить на паузу:', error);
-        }
-    }
-}
-
-function toggleFullscreen() {
-    if (!isVideoLoaded) {
-        loadVideo();
-        setTimeout(toggleFullscreen, 2000);
-        return;
-    }
-    
-    const modal = document.getElementById('videoModal');
-    const fullscreenContainer = document.getElementById('fullscreenVideo');
-    
-    if (!modal || !fullscreenContainer) return;
-    
-    // Копируем iframe в модальное окно
-    if (videoPlayer) {
-        const iframeSrc = videoPlayer.src;
-        fullscreenContainer.innerHTML = `
-            <iframe 
-                src="${iframeSrc}?autoplay=1" 
-                frameborder="0" 
-                allow="autoplay; fullscreen; picture-in-picture" 
-                allowfullscreen
-                title="Создание сайта за 15 минут - полноэкранный режим">
-            </iframe>
-        `;
-    } else {
-        // Если видео еще не загружено, загружаем его
-        fullscreenContainer.innerHTML = `
-            <iframe 
-                src="${RUTUBE_VIDEO_URL}?autoplay=1" 
-                frameborder="0" 
-                allow="autoplay; fullscreen; picture-in-picture" 
-                allowfullscreen
-                title="Создание сайта за 15 минут">
-            </iframe>
-        `;
-    }
-    
-    // Показываем модальное окно
-    modal.classList.add('active');
+// Открытие модального окна с видео
+function openVideoModal() {
+    document.getElementById('videoModal').classList.add('active');
     document.body.style.overflow = 'hidden';
-    isFullscreen = true;
 }
 
-function closeFullscreen() {
-    const modal = document.getElementById('videoModal');
-    if (!modal) return;
-    
-    // Останавливаем видео в модальном окне
-    const iframe = modal.querySelector('iframe');
-    if (iframe) {
-        iframe.contentWindow.postMessage('pause', '*');
-    }
-    
-    // Закрываем модальное окно
-    modal.classList.remove('active');
+// Закрытие модального окна
+function closeVideoModal() {
+    document.getElementById('videoModal').classList.remove('active');
     document.body.style.overflow = 'auto';
-    isFullscreen = false;
 }
 
-function restartVideo() {
-    if (!isVideoLoaded) {
-        loadVideo();
-        return;
-    }
-    
-    if (videoPlayer) {
-        try {
-            // Перезагружаем iframe
-            const currentSrc = videoPlayer.src.split('?')[0];
-            videoPlayer.src = currentSrc + '?autoplay=1';
-            
-            showNotification('Видео перезапущено', 'info');
-        } catch (error) {
-            console.log('Не удалось перезапустить видео:', error);
-        }
-    }
-}
-
-function updateVideoControls() {
-    if (isVideoLoaded) {
-        // Активируем кнопки
-        const buttons = ['pauseBtn', 'fullscreenBtn', 'restartBtn'];
-        buttons.forEach(btnId => {
-            const btn = document.getElementById(btnId);
-            if (btn) {
-                btn.disabled = false;
-                btn.style.opacity = '1';
-            }
+// Прокрутка к секции
+function scrollToSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        const headerHeight = document.querySelector('header').offsetHeight;
+        window.scrollTo({
+            top: section.offsetTop - headerHeight,
+            behavior: 'smooth'
         });
     }
 }
 
-// Модальные контролы
-function modalPlay() {
-    const iframe = document.querySelector('#fullscreenVideo iframe');
-    if (iframe) {
-        iframe.contentWindow.postMessage('play', '*');
-    }
-}
-
-function modalPause() {
-    const iframe = document.querySelector('#fullscreenVideo iframe');
-    if (iframe) {
-        iframe.contentWindow.postMessage('pause', '*');
-    }
-}
-
-// ========== СКАЧИВАНИЕ ФАЙЛОВ ==========
+// Скачивание файлов
 function downloadFile(type) {
     let content = '';
     let filename = '';
-    let fileType = 'text/plain';
+    let mimeType = 'text/plain';
     
     switch(type) {
         case 'html':
-            content = generateHTMLTemplate();
-            filename = 'шаблон-сайта.html';
-            fileType = 'text/html';
-            break;
-            
-        case 'cheatsheet':
-            content = generateCheatsheet();
-            filename = 'шпаргалка-веб-разработчика.txt';
-            break;
-            
-        case 'structure':
-            content = generateProjectStructure();
-            filename = 'структура-проекта.txt';
-            break;
-            
-        default:
-            showNotification('Неизвестный тип файла', 'error');
-            return;
-    }
-    
-    // Создаем и скачиваем файл
-    const blob = new Blob([content], { type: `${fileType};charset=utf-8` });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    
-    a.href = url;
-    a.download = filename;
-    a.style.display = 'none';
-    
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    URL.revokeObjectURL(url);
-    
-    showNotification(`Файл "${filename}" успешно скачан! 📁`, 'success');
-}
-
-function generateHTMLTemplate() {
-    return `<!DOCTYPE html>
+            content = `<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой первый сайт - Учебный проект</title>
+    <title>Мой первый сайт - VS Code Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Стили для вашего сайта */
         :root {
-            --primary: #2d5be3;
-            --secondary: #ff6b6b;
-            --light: #f8f9fa;
-            --dark: #212529;
+            --primary: #007acc;
+            --secondary: #68217a;
+            --accent: #4CAF50;
         }
         
         * {
@@ -489,10 +148,11 @@ function generateHTMLTemplate() {
         }
         
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             line-height: 1.6;
-            color: var(--dark);
-            background: var(--light);
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
         }
         
         .container {
@@ -502,324 +162,444 @@ function generateHTMLTemplate() {
         }
         
         header {
+            text-align: center;
+            padding: 80px 20px;
             background: white;
-            padding: 20px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            margin: 40px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
-        .hero {
-            text-align: center;
-            padding: 100px 0;
-            background: linear-gradient(135deg, var(--primary), #5c85ff);
-            color: white;
+        h1 {
+            color: var(--primary);
+            font-size: 3.5rem;
+            margin-bottom: 20px;
         }
         
         .btn {
             display: inline-block;
-            padding: 12px 24px;
+            padding: 15px 30px;
             background: var(--primary);
             color: white;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 10px;
+            font-weight: 600;
             margin-top: 20px;
         }
         
-        /* Добавьте свои стили здесь */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Мой первый сайт</h1>
-        </div>
-    </header>
-    
-    <section class="hero">
-        <div class="container">
-            <h2>Привет, мир!</h2>
-            <p>Это мой первый сайт, созданный как учебный проект</p>
-            <a href="#" class="btn">Узнать больше</a>
-        </div>
-    </section>
-    
-    <script>
-        // JavaScript код для вашего сайта
-        console.log('Мой сайт работает!');
-        
-        // Пример простой функции
-        document.querySelector('.btn').addEventListener('click', function() {
-            alert('Добро пожаловать на мой сайт!');
-        });
-    </script>
+    <div class="container">
+        <header>
+            <h1>Мой первый сайт!</h1>
+            <p>Создан за 15 минут с помощью VS Code Pro</p>
+            <p>Это полностью рабочий HTML файл. Сохраните его как index.html и откройте в браузере!</p>
+            <a href="#" class="btn">
+                <i class="fas fa-rocket"></i> Начать разработку
+            </a>
+        </header>
+    </div>
 </body>
 </html>`;
+            filename = 'index.html';
+            mimeType = 'text/html';
+            break;
+            
+        case 'css':
+            content = `/* Основные стили для первого сайта */
+:root {
+    --primary: #007acc;
+    --primary-light: #4fc3f7;
+    --primary-dark: #005a9e;
+    --secondary: #68217a;
+    --accent: #4CAF50;
+    --dark: #1a1a1a;
+    --light: #f8f9fa;
+    --lighter: #ffffff;
 }
 
-function generateCheatsheet() {
-    return `ШПАРГАЛКА ПО ВЕБ-РАЗРАБОТКЕ
-=====================================
-
-ОСНОВНЫЕ HTML-ТЕГИ:
-===================
-<h1>-<h6> - заголовки
-<p> - параграф текста
-<a href="url"> - ссылка
-<img src="image.jpg" alt="описание"> - изображение
-<ul>/<ol> - списки
-<li> - элемент списка
-<div> - блочный контейнер
-<span> - строчный контейнер
-<header>, <main>, <footer> - семантические теги
-<nav> - навигация
-<section> - секция страницы
-<article> - самостоятельный контент
-
-ОСНОВНЫЕ CSS-СВОЙСТВА:
-=====================
-color: #333; - цвет текста
-background: #fff; - фон
-font-size: 16px; - размер шрифта
-font-family: Arial, sans-serif; - семейство шрифтов
-margin: 10px; - внешние отступы
-padding: 20px; - внутренние отступы
-border: 1px solid #000; - граница
-border-radius: 10px; - скругление углов
-width: 100%; - ширина
-height: 200px; - высота
-display: flex; - flexbox
-display: grid; - CSS Grid
-position: relative/absolute; - позиционирование
-text-align: center; - выравнивание текста
-
-ОСНОВНЫЕ JS-КОМАНДЫ:
-===================
-console.log() - вывод в консоль
-document.querySelector() - выбор элемента
-addEventListener() - обработчик событий
-if/else - условный оператор
-for/while - циклы
-function - функция
-let/const - объявление переменных
-
-СОВЕТЫ ДЛЯ НАЧИНАЮЩИХ:
-=====================
-1. Сохраняйтесь часто (Ctrl+S)
-2. Используйте комментарии
-3. Проверяйте код в разных браузерах
-4. Изучайте консоль разработчика (F12)
-5. Не бойтесь ошибок - это часть обучения
-
-Удачи в изучении веб-разработки! 🚀`;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-function generateProjectStructure() {
-    return `СТРУКТУРА ВЕБ-ПРОЕКТА
-========================
-
-my-website/
-├── index.html          # Главная страница
-├── style.css           # Основные стили
-├── script.js           # JavaScript код
-├── README.md           # Описание проекта
-├── .gitignore          # Игнорируемые файлы
-├── assets/             # Ресурсы
-│   ├── images/         # Изображения
-│   │   ├── logo.png
-│   │   └── hero-bg.jpg
-│   ├── icons/          # Иконки
-│   └── fonts/          # Шрифты
-├── pages/              # Дополнительные страницы
-│   ├── about.html
-│   └── contact.html
-└── components/         # Компоненты
-    ├── header.html
-    ├── footer.html
-    └── navigation.css
-
-ИНСТРУКЦИЯ:
-1. Создайте папку для проекта
-2. Скопируйте эту структуру
-3. Начните с index.html
-4. Постепенно добавляйте функционал
-
-ПОЛЕЗНЫЕ КОМАНДЫ:
-================
-# Создание папок и файлов:
-mkdir my-website
-cd my-website
-touch index.html style.css script.js
-
-# Инициализация Git:
-git init
-git add .
-git commit -m "Initial commit"
-
-УСПЕХОВ В РАЗРАБОТКЕ! 💻`;
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: var(--dark);
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 20px;
 }
 
-// ========== УТИЛИТЫ ==========
-function scrollToSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    if (section) {
-        const header = document.querySelector('header');
-        const headerHeight = header ? header.offsetHeight : 80;
-        
-        window.scrollTo({
-            top: section.offsetTop - headerHeight,
-            behavior: 'smooth'
-        });
-        
-        // Обновляем активную ссылку
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${sectionId}`) {
-                link.classList.add('active');
-            }
-        });
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Шапка */
+header {
+    text-align: center;
+    padding: 80px 20px;
+    background: var(--lighter);
+    border-radius: 20px;
+    margin: 40px 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0, 122, 204, 0.1);
+}
+
+h1 {
+    color: var(--primary);
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+h2 {
+    color: var(--secondary);
+    font-size: 2rem;
+    margin: 40px 0 20px;
+}
+
+p {
+    color: #666;
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Кнопки */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 122, 204, 0.3);
+}
+
+/* Сетка */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin: 60px 0;
+}
+
+.card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.card-icon {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 20px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+    
+    h2 {
+        font-size: 1.75rem;
+    }
+    
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    header {
+        padding: 40px 20px;
+        margin: 20px 0;
     }
 }
 
-function setupScrollProgress() {
-    window.addEventListener('scroll', function() {
-        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrolled = (winScroll / height) * 100;
-        
-        const progressBar = document.querySelector('.scroll-progress');
-        if (progressBar) {
-            progressBar.style.width = scrolled + '%';
-        }
-    });
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-function setupEventListeners() {
-    // Закрытие модального окна по ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && isFullscreen) {
-            closeFullscreen();
-        }
-    });
-    
-    // Закрытие модального окна по клику вне контента
-    document.querySelector('#videoModal')?.addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeFullscreen();
-        }
-    });
+.fade-in {
+    animation: fadeIn 0.6s ease forwards;
 }
 
-function showNotification(message, type = 'info') {
-    // Удаляем предыдущие уведомления
-    const oldNotifications = document.querySelectorAll('.notification');
-    oldNotifications.forEach(n => n.remove());
+/* Утилиты */
+.text-center {
+    text-align: center;
+}
+
+.mt-4 {
+    margin-top: 40px;
+}
+
+.mb-4 {
+    margin-bottom: 40px;
+}`;
+            filename = 'style.css';
+            break;
+            
+        case 'checklist':
+            content = `ЧЕК-ЛИСТ: СОЗДАНИЕ САЙТА ЗА 15 МИНУТ
+=====================================
+
+✅ 1. УСТАНОВКА И НАСТРОЙКА VS CODE
+   [ ] Скачать Visual Studio Code с официального сайта
+   [ ] Запустить установщик и выбрать все опции
+   [ ] Установить расширения:
+       - Live Server
+       - Prettier
+       - Auto Rename Tag
+   [ ] Настроить горячие клавиши
+   [ ] Проверить работу VS Code
+
+✅ 2. СОЗДАНИЕ ПРОЕКТА
+   [ ] Создать папку для проекта
+   [ ] Открыть папку в VS Code
+   [ ] Создать файлы:
+       - index.html
+       - style.css
+       - script.js (опционально)
+   [ ] Проверить структуру проекта
+
+✅ 3. НАПИСАНИЕ HTML КОДА
+   [ ] Создать базовую структуру HTML
+   [ ] Добавить мета-теги (viewport, charset)
+   [ ] Подключить CSS и JS файлы
+   [ ] Создать семантическую разметку
+   [ ] Добавить контент и изображения
+   [ ] Проверить валидность кода
+
+✅ 4. СТИЛИЗАЦИЯ CSS
+   [ ] Сбросить стандартные стили
+   [ ] Настроить базовые стили (шрифты, цвета)
+   [ ] Создать адаптивную верстку
+   [ ] Добавить анимации и переходы
+   [ ] Протестировать на разных устройствах
+   [ ] Оптимизировать производительность
+
+✅ 5. ТЕСТИРОВАНИЕ И ОТЛАДКА
+   [ ] Открыть сайт в браузере
+   [ ] Проверить адаптивность
+   [ ] Протестировать на скорость загрузки
+   [ ] Исправить ошибки валидации
+   [ ] Проверить доступность (accessibility)
+   [ ] Протестировать в разных браузерах
+
+✅ 6. ПУБЛИКАЦИЯ НА ХОСТИНГЕ
+   [ ] Зарегистрироваться на Beget.com
+   [ ] Выбрать тариф и домен
+   [ ] Оплатить хостинг
+   [ ] Загрузить файлы через FTP/файловый менеджер
+   [ ] Настроить домен и SSL
+   [ ] Проверить работу сайта онлайн
+
+✅ 7. ОПТИМИЗАЦИЯ И SEO
+   [ ] Оптимизировать изображения
+   [ ] Настроить мета-теги для SEO
+   [ ] Добавить фавикон
+   [ ] Проверить скорость загрузки
+   [ ] Настроить кеширование
+   [ ] Добавить аналитику
+
+🚀 ВАЖНЫЕ СОВЕТЫ:
+• Сохраняйте файлы регулярно (Ctrl+S)
+• Используйте комментарии в коде
+• Следите за структуре проекта
+• Тестируйте после каждого изменения
+• Изучайте консоль разработчика
+• Не бойтесь экспериментировать
+
+🎯 ПЛАН ДАЛЬНЕЙШЕГО РАЗВИТИЯ:
+1. Изучить JavaScript основы
+2. Освоить Git и GitHub
+3. Изучить фреймворки (React/Vue)
+4. Освоить Node.js для backend
+5. Изучить базы данных
+6. Создать портфолио проектов
+
+УСПЕХОВ В ОБУЧЕНИИ! 💻✨
+
+Этот чек-лист поможет вам систематизировать процесс
+создания сайтов и не упустить важные этапы.`;
+            filename = 'чек-лист.txt';
+            break;
+    }
     
-    // Создаем новое уведомление
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Показать уведомление
+    showNotification(`Файл "${filename}" успешно скачан!`);
+}
+
+// Уведомление
+function showNotification(message) {
     const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    
-    // Выбираем иконку
-    const icon = type === 'success' ? 'check-circle' :
-                 type === 'error' ? 'exclamation-circle' :
-                 type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+    notification.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    `;
     
     notification.innerHTML = `
-        <i class="fas fa-${icon}"></i>
+        <i class="fas fa-check-circle"></i>
         <span>${message}</span>
-        <button onclick="this.parentElement.remove()">
-            <i class="fas fa-times"></i>
-        </button>
     `;
-    
-    // Добавляем стили
-    const style = document.createElement('style');
-    style.textContent = `
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-            max-width: 400px;
-            border-left: 4px solid #2d5be3;
-        }
-        .notification-success {
-            border-left-color: #4CAF50;
-        }
-        .notification-error {
-            border-left-color: #f44336;
-        }
-        .notification-warning {
-            border-left-color: #ff9800;
-        }
-        .notification i:first-child {
-            font-size: 1.2rem;
-        }
-        .notification-success i:first-child {
-            color: #4CAF50;
-        }
-        .notification-error i:first-child {
-            color: #f44336;
-        }
-        .notification-warning i:first-child {
-            color: #ff9800;
-        }
-        .notification button {
-            background: none;
-            border: none;
-            color: #666;
-            cursor: pointer;
-            margin-left: auto;
-            padding: 5px;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
     
     document.body.appendChild(notification);
     
-    // Автоудаление через 5 секунд
     setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }
-    }, 5000);
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
-function showVideo() {
-    scrollToSection('video');
-    setTimeout(() => {
-        if (!isVideoLoaded) {
-            loadVideo();
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    createNeuralNetwork();
+    
+    // Анимация статистики
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach(stat => {
+        const target = parseInt(stat.textContent);
+        if (!isNaN(target)) {
+            animateCounter(stat, target);
+        }
+    });
+    
+    // Плавное появление элементов при скролле
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    document.querySelectorAll('.feature-card, .install-step, .timeline-item').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'all 0.6s ease';
+        observer.observe(el);
+    });
+    
+    // Скрытие хедера при скролле вниз
+    let lastScroll = 0;
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        const header = document.querySelector('header');
+        
+        if (currentScroll > lastScroll && currentScroll > 100) {
+            header.style.transform = 'translateY(-100%)';
         } else {
-            playVideo();
+            header.style.transform = 'translateY(0)';
         }
-    }, 500);
+        
+        lastScroll = currentScroll;
+    });
+    
+    // Горячие клавиши
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeVideoModal();
+        }
+        if (e.key === ' ' && e.target === document.body) {
+            e.preventDefault();
+            openVideoModal();
+        }
+    });
+});
+
+// Анимация счетчиков
+function animateCounter(element, target) {
+    let current = 0;
+    const increment = target / 100;
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            element.textContent = target;
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.floor(current);
+        }
+    }, 20);
 }
 
-// Экспортируем функции для использования в HTML
-window.scrollToSection = scrollToSection;
-window.showVideo = showVideo;
-window.loadVideo = loadVideo;
-window.playVideo = playVideo;
-window.pauseVideo = pauseVideo;
-window.toggleFullscreen = toggleFullscreen;
-window.restartVideo = restartVideo;
-window.closeFullscreen = closeFullscreen;
-window.modalPlay = modalPlay;
-window.modalPause = modalPause;
-window.downloadFile = downloadFile;
+// CSS для анимаций
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
